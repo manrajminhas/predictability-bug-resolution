@@ -2,6 +2,11 @@
 
 This repository contains the data, analysis scripts, and final report for a project investigating the predictability of bug resolution time in large-scale open-source software projects.
 
+Large raw files (300–400 MB) are **not stored directly in this repository** due to GitHub’s size limits.  
+Instead, they are included as downloadable **Release assets**.  
+
+👉 You can find them under the [Releases page](../../releases).
+
 ---
 
 ## Project Team
