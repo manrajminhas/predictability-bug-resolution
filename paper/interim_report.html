@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title> Project</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="interim_report_files/libs/clipboard/clipboard.min.js"></script>
+<script src="interim_report_files/libs/quarto-html/quarto.js"></script>
+<script src="interim_report_files/libs/quarto-html/popper.min.js"></script>
+<script src="interim_report_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="interim_report_files/libs/quarto-html/anchor.min.js"></script>
+<link href="interim_report_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="interim_report_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="interim_report_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="interim_report_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="interim_report_files/libs/bootstrap/bootstrap-c0367b04c37547644fece4185067e4a7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><group number=""> Project</group></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction-and-motivation" class="level1">
+<h1>1 Introduction and Motivation</h1>
+<p>Software bugs are an unavoidable part of software development. While finding and fixing them is crucial, a key challenge for project managers and development teams is accurately estimating how long a bug will take to resolve. This metric, known as bug resolution time, is critical for effective project planning, resource allocation, and managing stakeholder expectations. Knowing whether a bug will take hours, days, or weeks to fix helps teams prioritize tasks, schedule releases, and communicate timelines more reliably.</p>
+<p>The most common approach to this problem is to build a predictive model using a single project’s own historical bug reports. The first step in our research, therefore, is to establish a baseline by evaluating the effectiveness of this within-project prediction strategy. This addresses our first research question (RQ1) and helps us understand how well a typical project can predict its own future outcomes.</p>
+<p>However, this standard approach has limitations, especially for new projects that lack a rich history of bug reports. This raises our second question (RQ2): can we build a general model trained on data from multiple other projects to make predictions for a new project it has never seen before? Building on this, we then explore a hybrid approach (RQ3) to see if we can get the best of both worlds by augmenting a project’s local data with data from other projects.</p>
+<p>Finally, our final research question (RQ4) aims to identify which bug report features (like severity or priority) are the most powerful and consistent predictors of resolution time across different software projects. By addressing these four questions, we hope to provide a comprehensive picture of how to best predict bug resolution times.</p>
+</section>
+<section id="research-questions" class="level1">
+<h1>2 Research Questions</h1>
+<p>To guide our investigation, we have defined the following four research questions (RQs):</p>
+<ul>
+<li><p><strong>RQ1 - Within-project prediction:</strong> How accurately can we predict the resolution time of future bugs in a project using only that project’s own historical bug reports?</p></li>
+<li><p><strong>RQ2 - Cross-project generalization:</strong> To what extent can a model trained on historical bug reports from other projects predict the resolution time of bugs in a completely new, unseen project?</p></li>
+<li><p><strong>RQ3 - Hybrid transfer:</strong> Does augmenting a project’s local training data with bug reports from other projects improve its future-bug prediction accuracy compared with using local data alone?</p></li>
+<li><p><strong>RQ4 - Feature consistency:</strong> Which features are consistently most predictive of bug resolution time across projects, and do their importances differ between projects?</p></li>
+</ul>
+</section>
+<section id="background-and-related-work" class="level1">
+<h1>3 Background and Related Work</h1>
+<p>The challenge of understanding and predicting how long it takes to fix bugs is well studied in software engineering. Early research by Zhang et al.&nbsp;applied simple regression to Eclipse bug data and showed that factors like component, priority, and code churn strongly affect fix time [1]. Özkan et al.&nbsp;added a wide range of static code metrics (for example, cyclomatic complexity and code size) in their “Bug Analysis Towards Bug Resolution Time Prediction,” and found these metrics predict resolution time just as well across network-softwarization projects [2]. Adekunle et al.&nbsp;then looked at machine-learning libraries on a large scale, examining report details such as reporter, component, and type, and discovered that those metadata alone account for much of the differences in how long bugs stay open [3].</p>
+<p>Having rich, curated datasets has been key to these modeling efforts. Acharya and Ginde’s BugsRepo provides over 119,000 fixed Bugzilla reports complete with comments, contributors, and timestamps, making it easy to reproduce studies of bug resolution workflows [4]. More recently, Patil’s GitBugs dataset gathered detailed reports (including “created” and “resolved” timestamps) from nine major open-source projects, offering a modern, varied corpus for finding new predictors [5].</p>
+<p>Beyond metadata, the text of bug reports has proven to be a powerful signal. Nastos et al.&nbsp;introduced an interpretable pipeline that combines topic modeling of descriptions with structured fields (priority, labels, and past assignee history) to both predict and explain resolution times [6]. Building on that, Chen et al.&nbsp;showed that using LLMs to break bug reports into sub-issues and action items surfaces features that correlate closely with fix latency [7].</p>
+<p>Other parts of the bug lifecycle have been explored too. Li et al.&nbsp;demonstrated that changing a bug’s priority after it’s filed does more than update a label—it actually speeds up or slows down fixes across 32 Apache projects [8]. And Zhang et al.’s cross-language study found that different programming-language ecosystems have distinct median resolution times and patch sizes, highlighting the need to adjust models when moving between languages [9].</p>
+</section>
+<section id="data" class="level1">
+<h1>4 Data</h1>
+<section id="data-sources" class="level2">
+<h2 class="anchored" data-anchor-id="data-sources">4.1 Data Sources</h2>
+<p>Our study uses bug report data sourced from the public JIRA issue tracker of the Apache Software Foundation (ASF). The ASF is an ideal source because it hosts hundreds of mature, widely-used open-source projects, providing realistic and high-quality software engineering data that ensures the transparency and reproducibility of our work.</p>
+<p>For our analysis, we selected four prominent ASF projects known for being large, complex, and data-centric systems. The chosen projects are:</p>
+<ul>
+<li><p><strong>Apache Kafka:</strong> A distributed event streaming platform.</p></li>
+<li><p><strong>Apache Cassandra:</strong> A distributed NoSQL database system.</p></li>
+<li><p><strong>Apache Spark:</strong> A unified analytics engine for large-scale data processing.</p></li>
+<li><p><strong>Apache Flink:</strong> A stream processing framework and batch processing system.</p></li>
+</ul>
+<p>Each bug report from these projects contains a rich set of fields that characterize the bug.</p>
+</section>
+<section id="data-description" class="level2">
+<h2 class="anchored" data-anchor-id="data-description">4.2 Data Description</h2>
+<p>The datasets were retrieved using the JIRA REST API. We specifically queried for issues of type “Bug” with a “Resolved” or “Closed” status, as these statuses contain the necessary resolution date information.</p>
+<p>The raw JSON data obtained from the API was loaded and flattened into data frames using the fromJSON(““, flatten = TRUE) function. This process allowed for a preliminary analysis of the available columns and rows within each dataset.</p>
+<p>The number of bug reports (records) for each project is as follows:</p>
+<ul>
+<li><p><strong>Cassandra:</strong> 10,009 records</p></li>
+<li><p><strong>Flink:</strong> 12,119 records</p></li>
+<li><p><strong>Kafka:</strong> 6,356 records</p></li>
+<li><p><strong>Spark:</strong> 16,479 records</p></li>
+</ul>
+<p>The initial flattening process yielded a substantial number of columns for each dataset:</p>
+<ul>
+<li><p><strong>Cassandra:</strong> 200 columns</p></li>
+<li><p><strong>Flink:</strong> 132 columns</p></li>
+<li><p><strong>Kafka:</strong> 165 columns</p></li>
+<li><p><strong>Spark:</strong> 139 columns</p></li>
+</ul>
+<p>It’s important to note that some of these columns contained lists of objects, which were not fully expanded during the initial flattening. Consequently, the reported column counts do not represent every possible nested field within the raw data.</p>
+</section>
+</section>
+<section id="feature-overview" class="level1">
+<h1>4.3 Feature Overview</h1>
+<p>Across all four projects, the following fields are present in every dataset and look most promising as predictors of <code>resolution_time</code> (our target variable):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Rationale</th>
+<th>Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>fields.created</td>
+<td>Timestamp when the bug was opened (used for calculating resolution_time).</td>
+<td>character</td>
+</tr>
+<tr class="even">
+<td>fields.resolutiondate</td>
+<td>Timestamp when the bug was marked resolved/closed (used for calculating resolution_time).</td>
+<td>list</td>
+</tr>
+<tr class="odd">
+<td>fields.priority.name</td>
+<td>Higher‐priority bugs often get fixed faster.</td>
+<td>character</td>
+</tr>
+<tr class="even">
+<td>fields.reporter.name</td>
+<td>Reporters may file easier‐to‐reproduce bugs the more often they do it (experience signal).</td>
+<td>character</td>
+</tr>
+<tr class="odd">
+<td>fields.comment.comments</td>
+<td>More back‐and‐forth often means more triage time.</td>
+<td>list</td>
+</tr>
+<tr class="even">
+<td>fields.attachment</td>
+<td>Patches/logs attached may speed or slow diagnosis.</td>
+<td>list</td>
+</tr>
+<tr class="odd">
+<td>fields.watches.watchCount</td>
+<td>Bugs with more watchers may be addressed more quickly.</td>
+<td>integer</td>
+</tr>
+<tr class="even">
+<td>fields.votes.votes</td>
+<td>Highly voted bugs may receive more attention.</td>
+<td>integers</td>
+</tr>
+<tr class="odd">
+<td>fields.description</td>
+<td>Longer descriptions usually mean more context/detail. Presence of code snippets or embedded images can speed triage.</td>
+<td>list</td>
+</tr>
+</tbody>
+</table>
+<p>While <code>fields.attachment</code> is present in most projects, it’s absent from the Spark dataset; however, we’ve decided to include it due to its potential usefulness as a predictor.</p>
+<section id="data-cleaning-and-preparation" class="level2">
+<h2 class="anchored" data-anchor-id="data-cleaning-and-preparation">4.4 Data Cleaning and Preparation</h2>
+<p>The raw data we collected from JIRA was in a complex JSON format and not immediately suitable for exploratory data analysis and modeling. This section describes the crucial steps we took to clean the data and perform feature engineering, the process of creating new variables from the raw information. This entire process was automated using an R script to ensure it was consistent and reproducible for all four projects.</p>
+<p>First, we performed several cleaning operations. We started by filtering out any bug reports that were missing a creation or resolution date, as these are essential for calculating our target variable. We then removed any bugs that had missing values in key predictor fields. This ensures that our models are trained on complete data.</p>
+<p>Next, we engineered a set of new features designed to capture different aspects of a bug report that might influence its resolution time. These features capture the bug’s context, the community’s engagement with it, and the reporter’s experience. The table below details each newly created feature, its purpose, and its data type.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Description &amp; Rationale</th>
+<th>Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>resolution_time</td>
+<td>The target variable. The total time in days from bug creation to resolution.</td>
+<td>double</td>
+</tr>
+<tr class="even">
+<td>watch_count, vote_count</td>
+<td>The number of users watching or voting for a bug. A higher count may signal higher impact, potentially leading to faster resolution.</td>
+<td>integer</td>
+</tr>
+<tr class="odd">
+<td>num_comments, num_attachments</td>
+<td>The count of comments and attachments. High numbers can indicate a complex, ongoing discussion or a well-documented issue.</td>
+<td>integer</td>
+</tr>
+<tr class="even">
+<td>description_length</td>
+<td>The number of characters in the bug’s description. This can act as a simple proxy for the bug’s initial complexity.</td>
+<td>integer</td>
+</tr>
+<tr class="odd">
+<td>created_wday, created_month</td>
+<td>The day of the week and month the bug was created. This helps capture weekly or seasonal patterns (e.g., weekend vs.&nbsp;weekday).</td>
+<td>integer</td>
+</tr>
+<tr class="even">
+<td>days_since_project_start</td>
+<td>The number of days from the project’s very first bug report. This captures the project’s maturity at the time of the bug.</td>
+<td>integer</td>
+</tr>
+<tr class="odd">
+<td>bugs_last_7d, bugs_last_30d</td>
+<td>The number of bugs created in the 7 or 30 days prior. This measures the recent workload, which could strain resources.</td>
+<td>integer</td>
+</tr>
+<tr class="even">
+<td>has_code_block</td>
+<td>A flag indicating if the description contains a formatted code block. A reproducible example could speed up diagnosis and resolution.</td>
+<td>logical</td>
+</tr>
+<tr class="odd">
+<td>has_inline_attachment</td>
+<td>A flag indicating if the description includes an inline image or file. Visual aids might help clarify the issue.</td>
+<td>logical</td>
+</tr>
+<tr class="even">
+<td>reporter_experience</td>
+<td>The number of bugs a user had previously reported in the project. An experienced reporter may submit higher-quality reports.</td>
+<td>integer</td>
+</tr>
+</tbody>
+</table>
+<p>In addition to these engineered features, we also included the bug’s original priority level in our final dataset. This categorical feature was carried over directly from the raw data because it represents a developer’s explicit judgment of a bug’s urgency and is expected to be a strong predictor of resolution time. In total, our final cleaned dataset contains 15 columns: our target variable <code>resolution_time</code> and 14 predictor features.</p>
+<p>After this cleaning and feature engineering process, we were left with four cleaned datasets. The final number of cleaned bug reports for each project is as follows:</p>
+<ul>
+<li><p><strong>Cassandra:</strong> 10,007 records (2 removed)</p></li>
+<li><p><strong>Flink:</strong> 12,118 records (1 removed)</p></li>
+<li><p><strong>Kafka:</strong> 6,332 records (24 removed)</p></li>
+<li><p><strong>Spark:</strong> 16,233 records (246 removed)</p></li>
+</ul>
+<p>Each dataset was saved as an .rds file to enable efficient loading and reuse in later exploratory and modeling stages.</p>
+</section>
+<section id="exploratory-data-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="exploratory-data-analysis">4.5 Exploratory Data Analysis</h2>
+<p>This section presents the results of exploratory data analysis (EDA) on the cleaned dataset from the Cassandra project. The main goal of the EDA is to understand the distribution of each feature, how they relate to the target variable, and their potential for prediction. We focus on Research Question 1: “How accurately can we predict the resolution time of future bugs in a project using only that project’s own historical bug reports?”. In this context, we aim to identify which features are most useful for predicting <code>resolution_time</code>.</p>
+<section id="analysis-of-the-target-variable-resolution_time" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-the-target-variable-resolution_time">4.5.1. Analysis of the Target Variable: <code>resolution_time</code></h3>
+<p>To understand the basic statistical properties of the target variable (<code>resolution_time</code>), we evaluated summary statistics and the standard deviation.</p>
+<p><strong>Summary statistics for <code>resolution_time</code> (original data):</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"=== Summary: resolution_time (original) ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== Summary: resolution_time (original) ===</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>summary_original <span class="ot">&lt;-</span> <span class="fu">summary</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>resolution_time)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(summary_original)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+1.900e-04 9.386e-01 7.187e+00 9.299e+01 4.906e+01 3.146e+03 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sd_original <span class="ot">&lt;-</span> <span class="fu">sd</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>resolution_time, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Standard deviation (original):"</span>, <span class="fu">round</span>(sd_original, <span class="dv">2</span>), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Standard deviation (original): 265.42 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>log_resolution_time <span class="ot">&lt;-</span> <span class="fu">log1p</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>resolution_time)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"=== Summary: log_resolution_time ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== Summary: log_resolution_time ===</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>summary_log <span class="ot">&lt;-</span> <span class="fu">summary</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>log_resolution_time)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(summary_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+0.0001852 0.6619688 2.1026015 2.4714851 3.9132205 8.0542069 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sd_log <span class="ot">&lt;-</span> <span class="fu">sd</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>log_resolution_time, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Standard deviation (log-transformed):"</span>, <span class="fu">round</span>(sd_log, <span class="dv">2</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Standard deviation (log-transformed): 2 </code></pre>
+</div>
+</div>
+<p>These results show that <code>resolution_time</code> varies widely. While some bugs are resolved extremely quickly, others take up to approximately 3146 days (about 8.6 years). The <strong>median</strong> resolution time is about <strong>7.19 days</strong>, but the <strong>mean</strong> is much higher at around <strong>92.99 days</strong>. The large standard deviation of <strong>265.42</strong> indicates that the distribution is <strong>heavily right-skewed</strong>, which reflects a typical pattern in bug resolution: most bugs are fixed quickly, but a small number take a long time to resolve.</p>
+<p>Because such a skewed distribution can negatively affect linear modeling assumptions, we applied a <strong>log transformation</strong> using the <code>log1p()</code> function. The transformed variable is called <code>log_resolution_time</code>.</p>
+<p>After transformation, the <strong>mean (2.47)</strong> and <strong>median (2.10)</strong> became much closer, and the <strong>standard deviation</strong> dropped significantly to <strong>2.00</strong>. This suggests the distribution is now <strong>closer to normal</strong>, which helps with later modeling. As a result, all subsequent correlation analyses and modeling steps use the <strong>log-transformed <code>log_resolution_time</code></strong>.</p>
+</section>
+<section id="analysis-of-numerical-predictive-features" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-numerical-predictive-features">4.5.2. Analysis of Numerical Predictive Features</h3>
+<p>To evaluate the relationships between numerical features and <code>log_resolution_time</code>, we calculated <strong>Pearson correlation coefficients</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Define feature lists ---</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>numerical_features_for_plotting <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"watch_count"</span>, <span class="st">"vote_count"</span>, <span class="st">"num_comments"</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"num_attachments"</span>, <span class="st">"description_length"</span>, <span class="st">"days_since_project_start"</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"bugs_last_7d"</span>, <span class="st">"bugs_last_30d"</span>, <span class="st">"reporter_experience"</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure 'priority' is a factor</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>priority <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>priority)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>categorical_cols_for_plotting <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"priority"</span>, <span class="st">"created_wday"</span>, <span class="st">"created_month"</span>, <span class="st">"has_code_block"</span>, <span class="st">"has_inline_attachment"</span>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Section for plots with ORIGINAL resolution_time ---</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="do">## Scatter plots</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col_name <span class="cf">in</span> numerical_features_for_plotting) {</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA[[col_name]], cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>resolution_time,</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"Original Resolution Time vs."</span>, col_name),</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> col_name,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"Resolution Time (days)"</span>,</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">cex =</span> <span class="fl">0.8</span>, <span class="at">col =</span> <span class="st">"darkgreen"</span>)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Boxplots</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col_name <span class="cf">in</span> categorical_cols_for_plotting) {</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">boxplot</span>(resolution_time <span class="sc">~</span> cleaned_dfs<span class="sc">$</span>CASSANDRA[[col_name]], <span class="at">data =</span> cleaned_dfs<span class="sc">$</span>CASSANDRA,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"Original Resolution Time by"</span>, col_name),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> col_name,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">ylab =</span> <span class="st">"Resolution Time (days)"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">col =</span> <span class="fu">rainbow</span>(<span class="fu">nlevels</span>(<span class="fu">as.factor</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA[[col_name]]))),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">border =</span> <span class="st">"black"</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-10.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-11.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-12.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-13.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-14.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Section for plots with LOG-TRANSFORMED resolution_time ---</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Scatter plots</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col_name <span class="cf">in</span> numerical_features_for_plotting) {</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA[[col_name]], cleaned_dfs<span class="sc">$</span>CASSANDRA<span class="sc">$</span>log_resolution_time,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"Log-transformed Resolution Time vs."</span>, col_name),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> col_name,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"Log(1+Resolution Time)"</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">cex =</span> <span class="fl">0.8</span>, <span class="at">col =</span> <span class="st">"darkblue"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-15.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-16.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-17.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-18.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-19.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-20.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-21.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-22.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-23.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Boxplots</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col_name <span class="cf">in</span> categorical_cols_for_plotting) {</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">boxplot</span>(log_resolution_time <span class="sc">~</span> cleaned_dfs<span class="sc">$</span>CASSANDRA[[col_name]], <span class="at">data =</span> cleaned_dfs<span class="sc">$</span>CASSANDRA,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"Log-transformed Resolution Time by"</span>, col_name),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> col_name,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">ylab =</span> <span class="st">"Log(1+Resolution Time)"</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">col =</span> <span class="fu">rainbow</span>(<span class="fu">nlevels</span>(<span class="fu">as.factor</span>(cleaned_dfs<span class="sc">$</span>CASSANDRA[[col_name]]))),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">border =</span> <span class="st">"black"</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-24.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-25.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-26.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-27.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/unnamed-chunk-2-28.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="correlation-structure-of-numerical-features" class="level3">
+<h3 class="anchored" data-anchor-id="correlation-structure-of-numerical-features">4.5.4 Correlation Structure of Numerical Features</h3>
+<p>To understand how our numeric predictors relate to each other and to the log-transformed target (<code>log_resolution_time</code>), we computed Pearson correlation coefficients on the Cassandra dataset. Table 4.5.4 summarizes each feature’s ρ with <code>log_resolution_time</code>, and Figure 4.5.4 visualizes the full correlation matrix.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Table 4.5.4: Pearson correlations with log1p(resolution_time) (Cassandra)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: right;">Pearson ρ</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">resolution_time</td>
+<td style="text-align: left;">resolution_time</td>
+<td style="text-align: right;">0.65</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">watch_count</td>
+<td style="text-align: left;">watch_count</td>
+<td style="text-align: right;">0.41</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">vote_count</td>
+<td style="text-align: left;">vote_count</td>
+<td style="text-align: right;">0.17</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">num_comments</td>
+<td style="text-align: left;">num_comments</td>
+<td style="text-align: right;">0.30</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">num_attachments</td>
+<td style="text-align: left;">num_attachments</td>
+<td style="text-align: right;">0.11</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">days_since_project_start</td>
+<td style="text-align: left;">days_since_project_start</td>
+<td style="text-align: right;">0.15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">description_length</td>
+<td style="text-align: left;">description_length</td>
+<td style="text-align: right;">0.04</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">bugs_last_7d</td>
+<td style="text-align: left;">bugs_last_7d</td>
+<td style="text-align: right;">-0.04</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">bugs_last_30d</td>
+<td style="text-align: left;">bugs_last_30d</td>
+<td style="text-align: right;">-0.05</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">reporter_experience</td>
+<td style="text-align: left;">reporter_experience</td>
+<td style="text-align: right;">-0.04</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/4.5.4-corr-table-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="bivariate-trends-for-top-predictors" class="level3">
+<h3 class="anchored" data-anchor-id="bivariate-trends-for-top-predictors">4.5.5 Bivariate Trends for Top Predictors</h3>
+<p>To inspect the functional form of our two strongest predictors, we plotted Cassandra’s <code>watch_count</code> and <code>num_comments</code> against the log‐transformed resolution time (<code>log_resolution_time</code>), overlaying LOESS smoothers to reveal any nonlinear effects (Figure 4.5.5a–b).</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/4.5.5-bivariate-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="outlier-and-tailrisk-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="outlier-and-tailrisk-analysis">4.5.6 Outlier and Tail‐Risk Analysis</h3>
+<p>To quantify how extreme resolution times might influence our error metrics, we measured the share of Cassandra bugs exceeding various duration thresholds (Table 4.5.6 and Figure 4.5.6b).</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Table 4.5.6: Tail‐Risk of Bug Resolution Times in Cassandra</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Threshold (days)</th>
+<th style="text-align: right;">% of Bugs &gt; Threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">30.9</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">18.3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">180</td>
+<td style="text-align: right;">11.9</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">365</td>
+<td style="text-align: right;">6.7</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1000</td>
+<td style="text-align: right;">2.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="interim_report_files/figure-html/4.5.6-tail-risk-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="findings" class="level3">
+<h3 class="anchored" data-anchor-id="findings">4.5.8 Findings</h3>
+<p>Based on our analyses in Sections 4.5.4–4.5.6, we draw the following key conclusions:</p>
+<ol type="1">
+<li><strong>Correlation Structure (Sec. 4.5.4):</strong>
+<ul>
+<li>Social-engagement metrics (<code>watch_count</code>, <code>num_comments</code>) are the strongest univariate predictors of log-transformed resolution time (ρ ≈ 0.41 and 0.30).</li>
+<li>Other metadata (<code>vote_count</code>, <code>num_attachments</code>) show weak positive associations (ρ ≈ 0.11–0.17).</li>
+<li>Temporal backlog features (<code>days_since_project_start</code>, <code>bugs_last_7d</code>, <code>bugs_last_30d</code>) and <code>reporter_experience</code> have negligible linear relationships (|ρ| &lt; 0.06).</li>
+<li>A moderate inter-correlation (ρ ≈ 0.35) between <code>watch_count</code> and <code>num_comments</code> suggests potential multicollinearity.</li>
+</ul></li>
+<li><strong>Bivariate Trends (Sec. 4.5.5):</strong>
+<ul>
+<li>Both <code>watch_count</code> and <code>num_comments</code> display steep increases in <code>log_resolution_time</code> at low values (0→50 watchers; 0→20 comments), then plateau—indicating diminishing returns.</li>
+<li>Approximate LOESS slopes at the medians (≈10 watchers, ≈8 comments) are small (0.02–0.03 log-days per unit), motivating the use of transformed or spline terms rather than raw linear effects.</li>
+</ul></li>
+<li><strong>Outlier &amp; Tail-Risk (Sec. 4.5.6):</strong>
+<ul>
+<li>A notable share of bugs slip beyond standard planning horizons: 30.9 % &gt; 30 days; 18.3 % &gt; 90 days; 11.9 % &gt; 180 days.</li>
+<li>Extreme outliers (6.7 % &gt; 365 days; 2.1 % &gt; 1000 days) can disproportionately skew MAE/RMSE.</li>
+</ul></li>
+</ol>
+<hr>
+<p><strong>Modeling Implications:</strong><br>
+- <strong>Feature transformations:</strong> Cap or log-transform <code>watch_count</code> and <code>num_comments</code> (or use splines) to capture their nonlinear effects.<br>
+- <strong>Robust methods:</strong> Consider Huber loss, quantile regression, or a two-stage model (classify long-tail vs.&nbsp;normal, then regress) to mitigate tail influence.<br>
+- <strong>Multicollinearity checks:</strong> Monitor and possibly combine or orthogonalize <code>watch_count</code> and <code>num_comments</code> in parametric models.</p>
+<p>These findings will directly inform our regression design in Section 5 as we address RQ1’s within-project prediction challenge.</p>
+</section>
+</section>
+</section>
+<section id="methodology" class="level1">
+<h1>5 Methodology</h1>
+<p>This section outlines the planned methodology for answering our four research questions. Our approach is designed to systematically evaluate within-project, cross-project, and hybrid modeling strategies using a consistent experimental framework. This plan remains preliminary and may be revised as the analysis progresses or new insights emerge.</p>
+<section id="experimental-design" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-design">5.1 Experimental Design</h2>
+<p>To address our research questions, we’ll structure our experiments as follows:</p>
+<ul>
+<li><p><strong>RQ1 (Within-project):</strong> For each of the four projects, we’ll perform a time-based split of its data. We plan to use the oldest 80% of bug reports (by creation date) as the training set and the newest 20% as the test set. This simulates a realistic scenario where we use past data to predict future outcomes.</p></li>
+<li><p><strong>RQ2 (Cross-project):</strong> We’ll use a leave-one-project-out validation strategy. To make predictions for a target project (e.g., Spark), we will train a single model on the combined data from the other three projects (Cassandra, Flink, and Kafka). This model will then be evaluated on the entire, unseen Spark dataset. This process will be repeated, with each project serving as the target once.</p></li>
+<li><p><strong>RQ3 (Hybrid transfer):</strong> To test the benefit of data augmentation, we’ll combine the approaches from RQ1 and RQ2. For a target project (e.g., Spark), we will create an augmented training set by combining its own training data (the oldest 80%) with the full datasets of the other three projects. The model trained on this hybrid dataset will be evaluated on the same 20% test set used for RQ1, allowing for a direct comparison of performance.</p></li>
+<li><p><strong>RQ4 (Feature consistency):</strong> After training the within-project models for RQ1, we will analyze and compare the feature importances across all four models. This will allow us to identify which predictors are consistently important across different projects and which are project-specific.</p></li>
+</ul>
+</section>
+<section id="modeling-approach" class="level2">
+<h2 class="anchored" data-anchor-id="modeling-approach">5.2 Modeling Approach</h2>
+<p>Given that <code>resolution_time</code> is a continuous numerical value, we are framing this as a regression problem.</p>
+<p>We plan to use a gradient boosting model, such as XGBoost or LightGBM. These models are well-suited for the tabular data we have, as they are highly effective at capturing complex, non-linear relationships between features. They also handle a mix of numerical and categorical data types gracefully and have robust, built-in methods for calculating feature importance, which is essential for RQ4.</p>
+</section>
+<section id="evaluation-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation-metrics">5.3 Evaluation Metrics</h2>
+<p>To measure the accuracy of our regression models, we plan to use a combination of standard evaluation metrics:</p>
+<ul>
+<li><p><strong>Mean Absolute Error (MAE):</strong> This will be our primary metric. It measures the average absolute difference between the predicted and actual resolution times, and its result is easily interpretable (e.g., “on average, the model’s prediction is off by X days”).</p></li>
+<li><p><strong>Root Mean Squared Error (RMSE):</strong> This metric is sensitive to large errors, providing a complementary view of performance by heavily penalizing significant mispredictions.</p></li>
+<li><p><strong>R-squared (</strong><span class="math inline">\(R^2\)</span>): This metric indicates the proportion of the variance in the resolution time that is predictable from the features. It gives us a sense of the overall explanatory power of our models.</p></li>
+</ul>
+</section>
+<section id="feature-importance-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="feature-importance-analysis">5.4 Feature Importance Analysis</h2>
+<p>To answer RQ4, we need to understand why our models make certain predictions. We plan to use the SHAP (SHapley Additive exPlanations) technique. SHAP is a method for interpreting machine learning models. It can tell us not only which features are most important globally across the entire dataset but also how each feature contributed to a specific, individual prediction. By generating and comparing SHAP summary plots for each of the four within-project models, we can identify the most influential predictors.</p>
+</section>
+</section>
+<section id="findings-1" class="level1">
+<h1>6 Findings</h1>
+<ul>
+<li><p>Statistical summaries, visualizations.</p></li>
+<li><p>Model performance (metrics like accuracy, RMSE, F1, etc.).</p></li>
+<li><p>Interpretation of results.</p></li>
+</ul>
+</section>
+<section id="discussion" class="level1">
+<h1>7 Discussion</h1>
+<ul>
+<li><p>Implications of findings.</p></li>
+<li><p>Limitations and potential sources of bias.</p></li>
+<li><p>Comparison with previous work (if applicable).</p></li>
+</ul>
+</section>
+<section id="conclusion" class="level1">
+<h1>8 Conclusion</h1>
+<ul>
+<li><p>Summary of findings.</p></li>
+<li><p>Recommendations or next steps.</p></li>
+</ul>
+</section>
+<section id="references" class="level1">
+<h1>9 References</h1>
+<p>[1] F. Zhang, F. Khomh, Y. Zou, and A. E. Hassan, “An Empirical Study on Factors Impacting Bug Fixing Time,” in <em>2012 19th Working Conference on Reverse Engineering</em>, 2012, pp.&nbsp;414–418. [Online]. Available: https://www.researchgate.net/publication/261199445_An_Empirical_Study_on_Factors_Impacting_Bug_Fixing_Time</p>
+<p>[2] H. Y. Özkan, P. E. Heegaard, W. Kellerer, and C. Mas-Machuca, “Bug Analysis Towards Bug Resolution Time Prediction,” <em>arXiv</em> preprint arXiv:2407.21241, 2024. [Online]. Available: https://arxiv.org/abs/2407.21241</p>
+<p>[3] A. Adekunle, Y. Dong, and H. Yang, “Software issues report for bug fixing process: An empirical study of machine-learning libraries,” <em>arXiv</em> preprint arXiv:2312.06005, 2023. [Online]. Available: https://arxiv.org/abs/2312.06005</p>
+<p>[4] J. Acharya and G. Ginde, “BugsRepo: A Comprehensive Curated Dataset of Bug Reports, Comments and Contributors Information from Bugzilla,” in <em>Proceedings of The 29th International Conference on Evaluation and Assessment in Software Engineering (EASE 2025)</em>, 2025. [Online]. Available: https://arxiv.org/abs/2504.18806</p>
+<p>[5] A. Patil, “GitBugs: Bug Reports for Duplicate Detection, Retrieval Augmented Generation, Triage, and More,” <em>arXiv</em> preprint arXiv:2504.09651, 2025. [Online]. Available: https://arxiv.org/abs/2504.09651</p>
+<p>[6] D. Nastos, T. Diamantopoulos, D. Tosi, M. Tropeano, and A. L. Symeonidis, “Towards an Interpretable Analysis for Estimating the Resolution Time of Software Issues,” <em>arXiv</em> preprint arXiv:2505.01108, 2025. [Online]. Available: https://arxiv.org/abs/2505.01108</p>
+<p>[7] Z. Chen, V. Nava-Camal, A. Suleiman, Y. Tang, D. Hou, and W. Shang, “An Empirical Study on the Capability of LLMs in Decomposing Bug Reports,” <em>arXiv</em> preprint arXiv:2504.20911, 2025. [Online]. Available: https://arxiv.org/abs/2504.20911</p>
+<p>[8] Z. Li, G. Cai, Q. Yu, P. Liang, R. Mo, and H. Liu, “Bug Priority Change: An Empirical Study on Apache Projects,” <em>arXiv</em> preprint arXiv:2403.05059, 2024. [Online]. Available: https://arxiv.org/abs/2403.05059</p>
+<p>[9] J. M. Zhang, F. Li, D. Hao, M. Wang, H. Tang, L. Zhang, and M. Harman, “A Study of Bug Resolution Characteristics in Popular Programming Languages,” <em>arXiv</em> preprint arXiv:1801.01025, 2020. [Online]. Available: https://arxiv.org/abs/1801.01025</p>
+<section id="project-plan-timeline" class="level2">
+<h2 class="anchored" data-anchor-id="project-plan-timeline">Project Plan &amp; Timeline</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Week</th>
+<th>Key Tasks</th>
+<th>Lead(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Week 1</strong><br>(Completed)</td>
+<td>- Finalize project proposal<br>- Set up R environment &amp; install libraries (tidyverse, jsonlite, xgboost, lightgbm, SHAP)</td>
+<td>All</td>
+</tr>
+<tr class="even">
+<td><strong>Week 2</strong><br>(Interim Report)</td>
+<td><strong>Data Preprocessing</strong><br>- Write/execute scripts to load raw JSON and produce cleaned <code>.rds</code> (compute <code>resolution_time</code>, flatten lists, engineer features)<br>- Validate record counts and schema for Cassandra, Flink, Kafka, Spark<br><br><strong>Initial EDA</strong><br>- Inspect distributions &amp; missingness<br>- Compute univariate correlations &amp; log-transform target<br>- Identify outliers &amp; tail risk (&gt;30 d, 90 d, 180 d, 365 d)<br>- Produce interim report (Sections 1–4.5.6)</td>
+<td>Eduardo (preprocessing)<br>Julia &amp; Manraj (EDA)</td>
+</tr>
+<tr class="odd">
+<td><strong>Week 3</strong></td>
+<td><strong>RQ1: Within-Project Prediction</strong><br>- Split each project 80 % train / 20 % test (chronologically)<br>- Train XGBoost/LightGBM on each project’s training set<br>- Evaluate MAE, RMSE, R² on test sets<br>- Hyperparameter tuning (Grid/Bayesian search)<br><br><strong>RQ3: Hybrid Transfer</strong><br>- Build “augmented” training sets: target’s 80 % + full data of the other three projects<br>- Retrain models &amp; evaluate on same 20 % test sets<br>- Compare performance vs.&nbsp;RQ1 baselines</td>
+<td>Manraj &amp; Eduardo</td>
+</tr>
+<tr class="even">
+<td><strong>Week 4</strong></td>
+<td><strong>RQ2: Cross-Project Generalization</strong><br>- Implement leave-one-project-out: train on three, test on the held-out project<br>- Repeat for each project, record MAE, RMSE, R²<br><br><strong>Draft Final Report</strong><br>- Write/expand: Introduction, Data, Methodology, early Findings (RQ1 &amp; RQ3)<br>- Embed model performance tables &amp; key plots</td>
+<td>Julia &amp; Manraj</td>
+</tr>
+<tr class="odd">
+<td><strong>Week 5</strong></td>
+<td><strong>RQ4: Feature Consistency</strong><br>- Compute SHAP values for each RQ1 model<br>- Generate SHAP summary plots, identify top-consistent vs.&nbsp;project-specific features<br><br><strong>Report Finalization &amp; Visualization</strong><br>- Integrate RQ2 &amp; RQ4 results into Findings &amp; Discussion<br>- Draft Discussion, Conclusion, polish References<br><br><strong>Presentation Prep</strong><br>- Create 5-minute slide deck (due Aug 20)</td>
+<td>All</td>
+</tr>
+<tr class="even">
+<td><strong>End of Aug</strong></td>
+<td>- Peer-review &amp; proofread final report<br>- Render HTML/PDF, push to GitHub in <code>/paper</code> folder<br>- Upload presentation slides</td>
+<td>All</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,552 @@
+---
+title: "Group 6 Project"
+format: html
+editor: visual
+---
+
+```{r load-data, include=FALSE}
+if (!requireNamespace("here", quietly=TRUE)) install.packages("here")
+library(here)
+
+data_dir <- here("data")
+# cat("Loading from:", normalizePath(data_dir), "\n")
+
+projects <- c("CASSANDRA","KAFKA","SPARK","FLINK")
+cleaned_dfs <- lapply(projects, function(proj) {
+  path <- file.path(data_dir, paste0(proj, "_cleaned.rds"))
+  if (!file.exists(path)) stop("Cannot find file: ", path)
+  readRDS(path)
+})
+names(cleaned_dfs) <- projects
+
+library(dplyr)
+library(knitr)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+```
+
+# 1 Introduction and Motivation
+
+Software bugs are an unavoidable part of software development. While finding and fixing them is crucial, a key challenge for project managers and development teams is accurately estimating how long a bug will take to resolve. This metric, known as bug resolution time, is critical for effective project planning, resource allocation, and managing stakeholder expectations. Knowing whether a bug will take hours, days, or weeks to fix helps teams prioritize tasks, schedule releases, and communicate timelines more reliably.
+
+The most common approach to this problem is to build a predictive model using a single project's own historical bug reports. The first step in our research, therefore, is to establish a baseline by evaluating the effectiveness of this within-project prediction strategy. This addresses our first research question (RQ1) and helps us understand how well a typical project can predict its own future outcomes.
+
+However, this standard approach has limitations, especially for new projects that lack a rich history of bug reports. This raises our second question (RQ2): can we build a general model trained on data from multiple other projects to make predictions for a new project it has never seen before? Building on this, we then explore a hybrid approach (RQ3) to see if we can get the best of both worlds by augmenting a project's local data with data from other projects.
+
+Finally, our final research question (RQ4) aims to identify which bug report features (like severity or priority) are the most powerful and consistent predictors of resolution time across different software projects. By addressing these four questions, we hope to provide a comprehensive picture of how to best predict bug resolution times.
+
+# 2 Research Questions
+
+To guide our investigation, we have defined the following four research questions (RQs):
+
+-   **RQ1 - Within-project prediction:** How accurately can we predict the resolution time of future bugs in a project using only that project’s own historical bug reports?
+
+-   **RQ2 - Cross-project generalization:** To what extent can a model trained on historical bug reports from other projects predict the resolution time of bugs in a completely new, unseen project?
+
+-   **RQ3 - Hybrid transfer:** Does augmenting a project’s local training data with bug reports from other projects improve its future-bug prediction accuracy compared with using local data alone?
+
+-   **RQ4 - Feature consistency:** Which features are consistently most predictive of bug resolution time across projects, and do their importances differ between projects?
+
+# 3 Background and Related Work
+
+The challenge of understanding and predicting how long it takes to fix bugs is well studied in software engineering. Early research by Zhang et al. applied simple regression to Eclipse bug data and showed that factors like component, priority, and code churn strongly affect fix time [1]. Özkan et al. added a wide range of static code metrics (for example, cyclomatic complexity and code size) in their “Bug Analysis Towards Bug Resolution Time Prediction,” and found these metrics predict resolution time just as well across network-softwarization projects [2]. Adekunle et al. then looked at machine-learning libraries on a large scale, examining report details such as reporter, component, and type, and discovered that those metadata alone account for much of the differences in how long bugs stay open [3].
+
+Having rich, curated datasets has been key to these modeling efforts. Acharya and Ginde’s BugsRepo provides over 119,000 fixed Bugzilla reports complete with comments, contributors, and timestamps, making it easy to reproduce studies of bug resolution workflows [4]. More recently, Patil’s GitBugs dataset gathered detailed reports (including “created” and “resolved” timestamps) from nine major open-source projects, offering a modern, varied corpus for finding new predictors [5].
+
+Beyond metadata, the text of bug reports has proven to be a powerful signal. Nastos et al. introduced an interpretable pipeline that combines topic modeling of descriptions with structured fields (priority, labels, and past assignee history) to both predict and explain resolution times [6]. Building on that, Chen et al. showed that using LLMs to break bug reports into sub-issues and action items surfaces features that correlate closely with fix latency [7].
+
+Other parts of the bug lifecycle have been explored too. Li et al. demonstrated that changing a bug’s priority after it’s filed does more than update a label—it actually speeds up or slows down fixes across 32 Apache projects [8]. And Zhang et al.’s cross-language study found that different programming-language ecosystems have distinct median resolution times and patch sizes, highlighting the need to adjust models when moving between languages [9].
+
+# 4 Data
+
+## 4.1 Data Sources
+
+Our study uses bug report data sourced from the public JIRA issue tracker of the Apache Software Foundation (ASF). The ASF is an ideal source because it hosts hundreds of mature, widely-used open-source projects, providing realistic and high-quality software engineering data that ensures the transparency and reproducibility of our work.
+
+For our analysis, we selected four prominent ASF projects known for being large, complex, and data-centric systems. The chosen projects are:
+
+-   **Apache Kafka:** A distributed event streaming platform.
+
+-   **Apache Cassandra:** A distributed NoSQL database system.
+
+-   **Apache Spark:** A unified analytics engine for large-scale data processing.
+
+-   **Apache Flink:** A stream processing framework and batch processing system.
+
+Each bug report from these projects contains a rich set of fields that characterize the bug.
+
+## 4.2 Data Description
+
+The datasets were retrieved using the JIRA REST API. We specifically queried for issues of type "Bug" with a "Resolved" or "Closed" status, as these statuses contain the necessary resolution date information.
+
+The raw JSON data obtained from the API was loaded and flattened into data frames using the fromJSON("", flatten = TRUE) function. This process allowed for a preliminary analysis of the available columns and rows within each dataset.
+
+The number of bug reports (records) for each project is as follows:
+
+-   **Cassandra:** 10,009 records
+
+-   **Flink:** 12,119 records
+
+-   **Kafka:** 6,356 records
+
+-   **Spark:** 16,479 records
+
+The initial flattening process yielded a substantial number of columns for each dataset:
+
+-   **Cassandra:** 200 columns
+
+-   **Flink:** 132 columns
+
+-   **Kafka:** 165 columns
+
+-   **Spark:** 139 columns
+
+It's important to note that some of these columns contained lists of objects, which were not fully expanded during the initial flattening. Consequently, the reported column counts do not represent every possible nested field within the raw data.
+
+# 4.3 Feature Overview
+
+Across all four projects, the following fields are present in every dataset and look most promising as predictors of `resolution_time` (our target variable):
+
+| Field | Rationale | Data Type |
+|----|----|----|
+| fields.created | Timestamp when the bug was opened (used for calculating resolution_time). | character |
+| fields.resolutiondate | Timestamp when the bug was marked resolved/closed (used for calculating resolution_time). | list |
+| fields.priority.name | Higher‐priority bugs often get fixed faster. | character |
+| fields.reporter.name | Reporters may file easier‐to‐reproduce bugs the more often they do it (experience signal). | character |
+| fields.comment.comments | More back‐and‐forth often means more triage time. | list |
+| fields.attachment | Patches/logs attached may speed or slow diagnosis. | list |
+| fields.watches.watchCount | Bugs with more watchers may be addressed more quickly. | integer |
+| fields.votes.votes | Highly voted bugs may receive more attention. | integers |
+| fields.description | Longer descriptions usually mean more context/detail. Presence of code snippets or embedded images can speed triage. | list |
+
+While `fields.attachment` is present in most projects, it's absent from the Spark dataset; however, we've decided to include it due to its potential usefulness as a predictor.
+
+## 4.4 Data Cleaning and Preparation
+
+The raw data we collected from JIRA was in a complex JSON format and not immediately suitable for exploratory data analysis and modeling. This section describes the crucial steps we took to clean the data and perform feature engineering, the process of creating new variables from the raw information. This entire process was automated using an R script to ensure it was consistent and reproducible for all four projects.
+
+First, we performed several cleaning operations. We started by filtering out any bug reports that were missing a creation or resolution date, as these are essential for calculating our target variable. We then removed any bugs that had missing values in key predictor fields. This ensures that our models are trained on complete data.
+
+Next, we engineered a set of new features designed to capture different aspects of a bug report that might influence its resolution time. These features capture the bug's context, the community's engagement with it, and the reporter's experience. The table below details each newly created feature, its purpose, and its data type.
+
+| Feature | Description & Rationale | Data Type |
+|----|----|----|
+| resolution_time | The target variable. The total time in days from bug creation to resolution. | double |
+| watch_count, vote_count | The number of users watching or voting for a bug. A higher count may signal higher impact, potentially leading to faster resolution. | integer |
+| num_comments, num_attachments | The count of comments and attachments. High numbers can indicate a complex, ongoing discussion or a well-documented issue. | integer |
+| description_length | The number of characters in the bug's description. This can act as a simple proxy for the bug's initial complexity. | integer |
+| created_wday, created_month | The day of the week and month the bug was created. This helps capture weekly or seasonal patterns (e.g., weekend vs. weekday). | integer |
+| days_since_project_start | The number of days from the project's very first bug report. This captures the project's maturity at the time of the bug. | integer |
+| bugs_last_7d, bugs_last_30d | The number of bugs created in the 7 or 30 days prior. This measures the recent workload, which could strain resources. | integer |
+| has_code_block | A flag indicating if the description contains a formatted code block. A reproducible example could speed up diagnosis and resolution. | logical |
+| has_inline_attachment | A flag indicating if the description includes an inline image or file. Visual aids might help clarify the issue. | logical |
+| reporter_experience | The number of bugs a user had previously reported in the project. An experienced reporter may submit higher-quality reports. | integer |
+
+In addition to these engineered features, we also included the bug's original priority level in our final dataset. This categorical feature was carried over directly from the raw data because it represents a developer's explicit judgment of a bug's urgency and is expected to be a strong predictor of resolution time. In total, our final cleaned dataset contains 15 columns: our target variable `resolution_time` and 14 predictor features.
+
+After this cleaning and feature engineering process, we were left with four cleaned datasets. The final number of cleaned bug reports for each project is as follows:
+
+-   **Cassandra:** 10,007 records (2 removed)
+
+-   **Flink:** 12,118 records (1 removed)
+
+-   **Kafka:** 6,332 records (24 removed)
+
+-   **Spark:** 16,233 records (246 removed)
+
+Each dataset was saved as an .rds file to enable efficient loading and reuse in later exploratory and modeling stages.
+
+## 4.5 Exploratory Data Analysis
+
+This section presents the results of exploratory data analysis (EDA) on the cleaned dataset from the Cassandra project. The main goal of the EDA is to understand the distribution of each feature, how they relate to the target variable, and their potential for prediction. We focus on Research Question 1: “How accurately can we predict the resolution time of future bugs in a project using only that project’s own historical bug reports?”. In this context, we aim to identify which features are most useful for predicting `resolution_time`.
+
+### 4.5.1. Analysis of the Target Variable: `resolution_time`
+
+To understand the basic statistical properties of the target variable (`resolution_time`), we evaluated summary statistics and the standard deviation.
+
+**Summary statistics for `resolution_time` (original data):**
+
+=== Summary: resolution_time (original) ===
+```{r}
+summary_original <- summary(cleaned_dfs$CASSANDRA$resolution_time)
+print(summary_original)
+sd_original <- sd(cleaned_dfs$CASSANDRA$resolution_time, na.rm = TRUE)
+cat("Standard deviation (original):", round(sd_original, 2), "\n\n")
+
+cleaned_dfs$CASSANDRA$log_resolution_time <- log1p(cleaned_dfs$CASSANDRA$resolution_time)
+```
+=== Summary: log_resolution_time ===
+```{r}
+summary_log <- summary(cleaned_dfs$CASSANDRA$log_resolution_time)
+print(summary_log)
+sd_log <- sd(cleaned_dfs$CASSANDRA$log_resolution_time, na.rm = TRUE)
+cat("Standard deviation (log-transformed):", round(sd_log, 2), "\n")
+```
+
+These results show that `resolution_time` varies widely. While some bugs are resolved extremely quickly, others take up to approximately 3146 days (about 8.6 years). The **median** resolution time is about **7.19 days**, but the **mean** is much higher at around **92.99 days**. The large standard deviation of **265.42** indicates that the distribution is **heavily right-skewed**, which reflects a typical pattern in bug resolution: most bugs are fixed quickly, but a small number take a long time to resolve.
+
+Because such a skewed distribution can negatively affect linear modeling assumptions, we applied a **log transformation** using the `log1p()` function. The transformed variable is called `log_resolution_time`.
+
+After transformation, the **mean (2.47)** and **median (2.10)** became much closer, and the **standard deviation** dropped significantly to **2.00**. This suggests the distribution is now **closer to normal**, which helps with later modeling. As a result, all subsequent correlation analyses and modeling steps use the **log-transformed `log_resolution_time`**.
+
+### 4.5.2. Analysis of Numerical Predictive Features
+
+To evaluate the relationships between numerical features and `log_resolution_time`, we calculated **Pearson correlation coefficients**.
+
+```{r}
+# --- Define feature lists ---
+numerical_features_for_plotting <- c(
+  "watch_count", "vote_count", "num_comments",
+  "num_attachments", "description_length", "days_since_project_start",
+  "bugs_last_7d", "bugs_last_30d", "reporter_experience"
+)
+
+# Ensure 'priority' is a factor
+cleaned_dfs$CASSANDRA$priority <- as.factor(cleaned_dfs$CASSANDRA$priority)
+
+categorical_cols_for_plotting <- c("priority", "created_wday", "created_month", "has_code_block", "has_inline_attachment")
+
+
+# --- Section for plots with ORIGINAL resolution_time ---
+## Scatter plots
+for (col_name in numerical_features_for_plotting) {
+  plot(cleaned_dfs$CASSANDRA[[col_name]], cleaned_dfs$CASSANDRA$resolution_time,
+       main = paste("Original Resolution Time vs.", col_name),
+       xlab = col_name,
+       ylab = "Resolution Time (days)",
+       pch = 16, cex = 0.8, col = "darkgreen")
+}
+
+## Boxplots
+for (col_name in categorical_cols_for_plotting) {
+  boxplot(resolution_time ~ cleaned_dfs$CASSANDRA[[col_name]], data = cleaned_dfs$CASSANDRA,
+          main = paste("Original Resolution Time by", col_name),
+          xlab = col_name,
+          ylab = "Resolution Time (days)",
+          col = rainbow(nlevels(as.factor(cleaned_dfs$CASSANDRA[[col_name]]))),
+          border = "black")
+}
+```
+#### Key Findings
+
+-   **`watch_count`** and **`num_comments`** showed the strongest correlations with `log_resolution_time`, with coefficients of approximately **0.41** and **0.30**, respectively.\
+    This suggests that bugs with more watchers or comments tend to take longer to resolve, making these features potentially useful for addressing **RQ1**.
+
+-   **`vote_count`** and **`num_attachments`** showed weak positive correlations.\
+    However, univariate analysis revealed that many values for both features are zero, which may limit their usefulness as predictors.
+
+- **`description_length`** had almost no correlation with resolution time, and univariate analysis identified some extreme outliers.  
+  As it stands, this feature is unlikely to be useful for prediction without further preprocessing.
+
+- **`days_since_project_start`**, **`bugs_last_7d`**, **`bugs_last_30d`**, and **`reporter_experience`** all showed little to no correlation with `log_resolution_time`.  
+  In particular, the very small negative correlations for `bugs_last_7d`, `bugs_last_30d`, and `reporter_experience` suggest that these features are unlikely to directly influence individual bug resolution times.
+
+---
+
+### 4.5.3 Analysis of Categorical and Boolean Predictive Features
+
+To examine the relationship between categorical/boolean features and `log_resolution_time`, we analyzed boxplots for each category.
+```{r}
+# --- Section for plots with LOG-TRANSFORMED resolution_time ---
+## Scatter plots
+for (col_name in numerical_features_for_plotting) {
+  plot(cleaned_dfs$CASSANDRA[[col_name]], cleaned_dfs$CASSANDRA$log_resolution_time,
+       main = paste("Log-transformed Resolution Time vs.", col_name),
+       xlab = col_name,
+       ylab = "Log(1+Resolution Time)",
+       pch = 16, cex = 0.8, col = "darkblue")
+}
+
+## Boxplots
+for (col_name in categorical_cols_for_plotting) {
+  boxplot(log_resolution_time ~ cleaned_dfs$CASSANDRA[[col_name]], data = cleaned_dfs$CASSANDRA,
+          main = paste("Log-transformed Resolution Time by", col_name),
+          xlab = col_name,
+          ylab = "Log(1+Resolution Time)",
+          col = rainbow(nlevels(as.factor(cleaned_dfs$CASSANDRA[[col_name]]))),
+          border = "black")
+}
+```
+#### Key Observations
+
+- **`priority`**: This feature shows a clear trend where higher-priority bugs ("High", "Urgent") generally get resolved faster than lower-priority ones ("Normal", "Low").  
+  This makes `priority` a strong potential predictor of resolution time.
+
+- **`has_code_block`**: Bugs with code blocks in their descriptions tend to have slightly longer resolution times.  
+  This suggests it might offer some predictive value.
+
+- **`created_wday`** and **`created_month`**: Neither the day of the week nor the month of creation showed clear patterns or differences in bug resolution times, indicating limited individual predictive power.
+
+- **`has_inline_attachment`**: With very few cases where this was true (only 47), it's hard to tell if it significantly affects resolution time.  
+  Its standalone predictive value is likely low.
+
+### 4.5.4 Correlation Structure of Numerical Features
+
+To understand how our numeric predictors relate to each other and to the log-transformed target (`log_resolution_time`), we computed Pearson correlation coefficients on the Cassandra dataset. Table 4.5.4 summarizes each feature’s ρ with `log_resolution_time`, and Figure 4.5.4 visualizes the full correlation matrix.
+
+```{r 4.5.4-corr-table, echo=FALSE}
+library(dplyr)
+library(knitr)
+library(reshape2)
+library(ggplot2)
+
+# 1. Build numeric-only tibble
+corr_df <- cleaned_dfs$CASSANDRA %>%
+  transmute(
+    resolution_time,
+    log_resolution_time = log1p(resolution_time),
+    watch_count,
+    vote_count,
+    num_comments,
+    num_attachments,
+    days_since_project_start,
+    description_length,
+    bugs_last_7d,
+    bugs_last_30d,
+    reporter_experience
+  )
+
+# 2. Compute correlation matrix
+corr_mat <- cor(corr_df, use = "pairwise.complete.obs")
+
+# 3. Extract correlations with log_resolution_time
+corr_vals <- data.frame(
+  Feature = rownames(corr_mat),
+  Rho     = corr_mat[, "log_resolution_time"]
+) %>%
+  filter(Feature != "log_resolution_time") %>%
+  mutate(Rho = round(Rho, 2))
+
+# 4. Print table
+kable(
+  corr_vals,
+  col.names = c("Feature", "Pearson ρ"),
+  caption  = "Table 4.5.4: Pearson correlations with log1p(resolution_time) (Cassandra)"
+)
+
+# 5. Melt the full matrix for plotting
+melted <- melt(corr_mat, varnames = c("Feature1", "Feature2"), value.name = "rho")
+
+# 6. Plot heatmap
+ggplot(melted, aes(x = Feature1, y = Feature2, fill = rho)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low      = "steelblue",
+    mid      = "white",
+    high     = "firebrick",
+    midpoint = 0,
+    limits   = c(-1, 1)
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title  = element_blank()
+  ) +
+  labs(
+    title    = "Figure 4.5.4: Correlation Matrix of Numeric Features (Cassandra)",
+    subtitle = "Pearson ρ on log1p-transformed resolution time and related predictors",
+    fill     = expression(rho)
+  )
+```
+
+### 4.5.5 Bivariate Trends for Top Predictors
+
+To inspect the functional form of our two strongest predictors, we plotted Cassandra’s `watch_count` and `num_comments` against the log‐transformed resolution time (`log_resolution_time`), overlaying LOESS smoothers to reveal any nonlinear effects (Figure 4.5.5a–b).
+
+```{r 4.5.5-bivariate, fig.width=10, fig.height=4, echo=FALSE}
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+
+# 1. Prepare Cassandra data, add log target, cap extremes for clarity
+cass <- cleaned_dfs$CASSANDRA %>%
+  mutate(log_resolution_time = log1p(resolution_time)) %>%
+  filter(
+    watch_count  < quantile(watch_count,  .99),
+    num_comments < quantile(num_comments, .99)
+  )
+
+# 2. Plot a) watch_count vs log_resolution_time
+p1 <- ggplot(cass, aes(x = watch_count, y = log_resolution_time)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "loess", se = FALSE, color = "firebrick") +
+  labs(
+    title = "a) log₁₀(Resolution Time+1) vs. Watch Count",
+    x     = "Number of Watchers",
+    y     = "log₁₀(Days + 1)"
+  ) +
+  theme_minimal()
+
+# 3. Plot b) num_comments vs log_resolution_time
+p2 <- ggplot(cass, aes(x = num_comments, y = log_resolution_time)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "loess", se = FALSE, color = "steelblue") +
+  labs(
+    title = "b) log₁₀(Resolution Time+1) vs. Number of Comments",
+    x     = "Number of Comments",
+    y     = "log₁₀(Days + 1)"
+  ) +
+  theme_minimal()
+
+# 4. Display side by side
+grid.arrange(p1, p2, ncol = 2)
+```
+
+### 4.5.6 Outlier and Tail‐Risk Analysis
+
+To quantify how extreme resolution times might influence our error metrics, we measured the share of Cassandra bugs exceeding various duration thresholds (Table 4.5.6 and Figure 4.5.6b).
+
+```{r 4.5.6-tail-risk, echo=FALSE, fig.width=8, fig.height=4}
+library(dplyr)
+library(tibble)
+library(knitr)
+library(ggplot2)
+
+# 1. Define thresholds and compute percentages
+thresholds <- c(30, 90, 180, 365, 1000)
+tail_df <- tibble(
+  `Threshold (days)`    = thresholds,
+  `% of Bugs > Threshold` = sapply(thresholds, function(t) {
+    mean(cleaned_dfs$CASSANDRA$resolution_time > t, na.rm = TRUE) * 100
+  })
+)
+
+# 2. Print tail-risk table
+kable(
+  tail_df,
+  digits    = 1,
+  caption   = "Table 4.5.6: Tail‐Risk of Bug Resolution Times in Cassandra",
+  col.names = c("Threshold (days)", "% of Bugs > Threshold")
+)
+
+# 3. Plot bar chart of tail-risk
+ggplot(tail_df, aes(x = factor(`Threshold (days)`), y = `% of Bugs > Threshold`)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = sprintf("%.1f%%", `% of Bugs > Threshold`)), 
+            vjust = -0.5, size = 3) +
+  labs(
+    title = "Figure 4.5.6b: % of Cassandra Bugs Exceeding Resolution Time Thresholds",
+    x     = "Resolution Time Threshold (days)",
+    y     = "% of Bugs > Threshold"
+  ) +
+  theme_minimal() +
+  coord_cartesian(ylim = c(0, max(tail_df$`% of Bugs > Threshold`) + 5))
+```
+
+### 4.5.8 Findings
+
+Based on our analyses in Sections 4.5.4–4.5.6, we draw the following key conclusions:
+
+1. **Correlation Structure (Sec. 4.5.4):**
+   - Social-engagement metrics (`watch_count`, `num_comments`) are the strongest univariate predictors of log-transformed resolution time (ρ ≈ 0.41 and 0.30).
+   - Other metadata (`vote_count`, `num_attachments`) show weak positive associations (ρ ≈ 0.11–0.17).
+   - Temporal backlog features (`days_since_project_start`, `bugs_last_7d`, `bugs_last_30d`) and `reporter_experience` have negligible linear relationships (|ρ| < 0.06).
+   - A moderate inter-correlation (ρ ≈ 0.35) between `watch_count` and `num_comments` suggests potential multicollinearity.
+
+2. **Bivariate Trends (Sec. 4.5.5):**
+   - Both `watch_count` and `num_comments` display steep increases in `log_resolution_time` at low values (0→50 watchers; 0→20 comments), then plateau—indicating diminishing returns.
+   - Approximate LOESS slopes at the medians (≈10 watchers, ≈8 comments) are small (0.02–0.03 log-days per unit), motivating the use of transformed or spline terms rather than raw linear effects.
+
+3. **Outlier & Tail-Risk (Sec. 4.5.6):**
+   - A notable share of bugs slip beyond standard planning horizons: 30.9 % > 30 days; 18.3 % > 90 days; 11.9 % > 180 days.
+   - Extreme outliers (6.7 % > 365 days; 2.1 % > 1000 days) can disproportionately skew MAE/RMSE.
+
+---
+
+**Modeling Implications:**  
+- **Feature transformations:** Cap or log-transform `watch_count` and `num_comments` (or use splines) to capture their nonlinear effects.  
+- **Robust methods:** Consider Huber loss, quantile regression, or a two-stage model (classify long-tail vs. normal, then regress) to mitigate tail influence.  
+- **Multicollinearity checks:** Monitor and possibly combine or orthogonalize `watch_count` and `num_comments` in parametric models.
+
+These findings will directly inform our regression design in Section 5 as we address RQ1’s within-project prediction challenge.  
+
+# 5 Methodology
+
+This section outlines the planned methodology for answering our four research questions. Our approach is designed to systematically evaluate within-project, cross-project, and hybrid modeling strategies using a consistent experimental framework. This plan remains preliminary and may be revised as the analysis progresses or new insights emerge.
+
+## 5.1 Experimental Design
+
+To address our research questions, we'll structure our experiments as follows:
+
+-   **RQ1 (Within-project):** For each of the four projects, we'll perform a time-based split of its data. We plan to use the oldest 80% of bug reports (by creation date) as the training set and the newest 20% as the test set. This simulates a realistic scenario where we use past data to predict future outcomes.
+
+-   **RQ2 (Cross-project):** We'll use a leave-one-project-out validation strategy. To make predictions for a target project (e.g., Spark), we will train a single model on the combined data from the other three projects (Cassandra, Flink, and Kafka). This model will then be evaluated on the entire, unseen Spark dataset. This process will be repeated, with each project serving as the target once.
+
+-   **RQ3 (Hybrid transfer):** To test the benefit of data augmentation, we'll combine the approaches from RQ1 and RQ2. For a target project (e.g., Spark), we will create an augmented training set by combining its own training data (the oldest 80%) with the full datasets of the other three projects. The model trained on this hybrid dataset will be evaluated on the same 20% test set used for RQ1, allowing for a direct comparison of performance.
+
+-   **RQ4 (Feature consistency):** After training the within-project models for RQ1, we will analyze and compare the feature importances across all four models. This will allow us to identify which predictors are consistently important across different projects and which are project-specific.
+
+## 5.2 Modeling Approach
+
+Given that `resolution_time` is a continuous numerical value, we are framing this as a regression problem.
+
+We plan to use a gradient boosting model, such as XGBoost or LightGBM. These models are well-suited for the tabular data we have, as they are highly effective at capturing complex, non-linear relationships between features. They also handle a mix of numerical and categorical data types gracefully and have robust, built-in methods for calculating feature importance, which is essential for RQ4.
+
+## 5.3 Evaluation Metrics
+
+To measure the accuracy of our regression models, we plan to use a combination of standard evaluation metrics:
+
+-   **Mean Absolute Error (MAE):** This will be our primary metric. It measures the average absolute difference between the predicted and actual resolution times, and its result is easily interpretable (e.g., "on average, the model's prediction is off by X days").
+
+-   **Root Mean Squared Error (RMSE):** This metric is sensitive to large errors, providing a complementary view of performance by heavily penalizing significant mispredictions.
+
+-   **R-squared ($R^2$):** This metric indicates the proportion of the variance in the resolution time that is predictable from the features. It gives us a sense of the overall explanatory power of our models.
+
+## 5.4 Feature Importance Analysis
+
+To answer RQ4, we need to understand why our models make certain predictions. We plan to use the SHAP (SHapley Additive exPlanations) technique. SHAP is a method for interpreting machine learning models. It can tell us not only which features are most important globally across the entire dataset but also how each feature contributed to a specific, individual prediction. By generating and comparing SHAP summary plots for each of the four within-project models, we can identify the most influential predictors.
+
+# 6 Findings
+
+-   Statistical summaries, visualizations.
+
+-   Model performance (metrics like accuracy, RMSE, F1, etc.).
+
+-   Interpretation of results.
+
+# 7 Discussion
+
+-   Implications of findings.
+
+-   Limitations and potential sources of bias.
+
+-   Comparison with previous work (if applicable).
+
+# 8 Conclusion
+
+-   Summary of findings.
+
+-   Recommendations or next steps.
+
+# 9 References
+
+[1] F. Zhang, F. Khomh, Y. Zou, and A. E. Hassan, "An Empirical Study on Factors Impacting Bug Fixing Time," in *2012 19th Working Conference on Reverse Engineering*, 2012, pp. 414–418. [Online]. Available: https://www.researchgate.net/publication/261199445_An_Empirical_Study_on_Factors_Impacting_Bug_Fixing_Time
+
+[2] H. Y. Özkan, P. E. Heegaard, W. Kellerer, and C. Mas-Machuca, "Bug Analysis Towards Bug Resolution Time Prediction," *arXiv* preprint arXiv:2407.21241, 2024. [Online]. Available: https://arxiv.org/abs/2407.21241
+
+[3] A. Adekunle, Y. Dong, and H. Yang, "Software issues report for bug fixing process: An empirical study of machine-learning libraries," *arXiv* preprint arXiv:2312.06005, 2023. [Online]. Available: https://arxiv.org/abs/2312.06005
+
+[4] J. Acharya and G. Ginde, "BugsRepo: A Comprehensive Curated Dataset of Bug Reports, Comments and Contributors Information from Bugzilla," in *Proceedings of The 29th International Conference on Evaluation and Assessment in Software Engineering (EASE 2025)*, 2025. [Online]. Available: https://arxiv.org/abs/2504.18806
+
+[5] A. Patil, "GitBugs: Bug Reports for Duplicate Detection, Retrieval Augmented Generation, Triage, and More," *arXiv* preprint arXiv:2504.09651, 2025. [Online]. Available: https://arxiv.org/abs/2504.09651
+
+[6] D. Nastos, T. Diamantopoulos, D. Tosi, M. Tropeano, and A. L. Symeonidis, "Towards an Interpretable Analysis for Estimating the Resolution Time of Software Issues," *arXiv* preprint arXiv:2505.01108, 2025. [Online]. Available: https://arxiv.org/abs/2505.01108
+
+[7] Z. Chen, V. Nava-Camal, A. Suleiman, Y. Tang, D. Hou, and W. Shang, "An Empirical Study on the Capability of LLMs in Decomposing Bug Reports," *arXiv* preprint arXiv:2504.20911, 2025. [Online]. Available: https://arxiv.org/abs/2504.20911
+
+[8] Z. Li, G. Cai, Q. Yu, P. Liang, R. Mo, and H. Liu, "Bug Priority Change: An Empirical Study on Apache Projects," *arXiv* preprint arXiv:2403.05059, 2024. [Online]. Available: https://arxiv.org/abs/2403.05059
+
+[9] J. M. Zhang, F. Li, D. Hao, M. Wang, H. Tang, L. Zhang, and M. Harman, "A Study of Bug Resolution Characteristics in Popular Programming Languages," *arXiv* preprint arXiv:1801.01025, 2020. [Online]. Available: https://arxiv.org/abs/1801.01025
+
+## Project Plan & Timeline
+
+| Week     | Key Tasks                                                                                                                                                                                                                                                                       | Lead(s)                  |
+|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| **Week 1**<br>(Completed) | - Finalize project proposal<br>- Set up R environment & install libraries (tidyverse, jsonlite, xgboost, lightgbm, SHAP)                                                                                                                                                                            | All                      |
+| **Week 2**<br>(Interim Report) | **Data Preprocessing**<br>- Write/execute scripts to load raw JSON and produce cleaned `.rds` (compute `resolution_time`, flatten lists, engineer features)<br>- Validate record counts and schema for Cassandra, Flink, Kafka, Spark<br><br>**Initial EDA**<br>- Inspect distributions & missingness<br>- Compute univariate correlations & log-transform target<br>- Identify outliers & tail risk (>30 d, 90 d, 180 d, 365 d)<br>- Produce interim report (Sections 1–4.5.6) | Eduardo (preprocessing)<br>Julia & Manraj (EDA) |
+| **Week 3** | **RQ1: Within-Project Prediction**<br>- Split each project 80 % train / 20 % test (chronologically)<br>- Train XGBoost/LightGBM on each project’s training set<br>- Evaluate MAE, RMSE, R² on test sets<br>- Hyperparameter tuning (Grid/Bayesian search)<br><br>**RQ3: Hybrid Transfer**<br>- Build “augmented” training sets: target’s 80 % + full data of the other three projects<br>- Retrain models & evaluate on same 20 % test sets<br>- Compare performance vs. RQ1 baselines | Manraj & Eduardo       |
+| **Week 4** | **RQ2: Cross-Project Generalization**<br>- Implement leave-one-project-out: train on three, test on the held-out project<br>- Repeat for each project, record MAE, RMSE, R²<br><br>**Draft Final Report**<br>- Write/expand: Introduction, Data, Methodology, early Findings (RQ1 & RQ3)<br>- Embed model performance tables & key plots | Julia & Manraj         |
+| **Week 5** | **RQ4: Feature Consistency**<br>- Compute SHAP values for each RQ1 model<br>- Generate SHAP summary plots, identify top-consistent vs. project-specific features<br><br>**Report Finalization & Visualization**<br>- Integrate RQ2 & RQ4 results into Findings & Discussion<br>- Draft Discussion, Conclusion, polish References<br><br>**Presentation Prep**<br>- Create 5-minute slide deck (due Aug 20) | All                     |
+| **End of Aug** | - Peer-review & proofread final report<br>- Render HTML/PDF, push to GitHub in `/paper` folder<br>- Upload presentation slides                                                                                                                                        | All                      |
+
